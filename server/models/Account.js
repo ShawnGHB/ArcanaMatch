@@ -5,6 +5,7 @@
   interacting with our mongo database.
 */
 const bcrypt = require('bcrypt');
+const e = require('express');
 const mongoose = require('mongoose');
 
 /* When generating a password hash, bcrypt (and most other password hash
@@ -33,15 +34,32 @@ const AccountSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  birthday: {
+    type: String,
+    required: true,
+  },
+  zodiac: {
+    type: String,
+    required: true,
+  },
   createdDate: {
     type: Date,
     default: Date.now,
   },
+  score: { //will be 50 to start with
+    type: Number,
+    min: 0,
+    default: 50,
+  },
 });
+
 
 // Converts a doc to something we can store in redis later on.
 AccountSchema.statics.toAPI = (doc) => ({
   username: doc.username,
+  birthday: doc.birthday,
+  zodiac: doc.zodiac,
+  score: doc.score,
   _id: doc._id,
 });
 
@@ -69,6 +87,40 @@ AccountSchema.statics.authenticate = async (username, password, callback) => {
     return callback();
   } catch (err) {
     return callback(err);
+  }
+};
+
+/*Helper Function to identify Zodiac*/
+AccountSchema.statics.zodiac = async (birthday) => {
+
+  const month = birthday.getUTCMonth() + 1; //indexes starting at 0 for some reason
+  const day = birthday.getUTCDate();
+
+  //Zodiac Date Ranges assigned based on birthday in user account
+  if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) {
+    return 'Aries';
+  } else if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) {
+    return 'Taurus';
+  } else if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) {
+    return 'Gemini';
+  } else if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) {
+    return 'Cancer';
+  } else if ((month == 7 && day >= 21) || (month == 8 && day <= 22)) {
+    return 'Leo';
+  } else if ((month == 8 && day >= 21) || (month == 9 && day <= 22)) {
+    return 'Virgo';
+  } else if ((month == 9 && day >= 21) || (month == 10 && day <= 21)) {
+    return 'Libra';
+  } else if ((month == 10 && day >= 21) || (month == 11 && day <= 21)) {
+    return 'Scorpio';
+  } else if ((month == 11 && day >= 21) || (month == 12 && day <= 19)) {
+    return 'Sagittarius';
+  } else if ((month == 12 && day >= 21) || (month == 1 && day <= 18)) {
+    return 'Capricorn';
+  } else if ((month == 1 && day >= 21) || (month == 2 && day <= 19)) {
+    return 'Aquarius';
+  } else {
+    return 'Pisces';
   }
 };
 

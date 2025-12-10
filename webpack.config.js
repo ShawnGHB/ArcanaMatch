@@ -1,13 +1,29 @@
 const path = require('path');
+const { login } = require('./server/controllers/Account');
 
 module.exports = {
-    entry: './client/client.js',
+    entry: {
+        app: './client/fortuna.jsx',
+        login: './client/login.jsx',
+        account: './client/account.jsx',
+},
+    module: {
+        rules: [
+            {
+                test: /\.(js|jsx)$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                },
+            },
+        ],
+    },
     mode: 'production',
     watchOptions: {
         aggregateTimeout: 200,
     },
     output: {
         path: path.resolve(__dirname, 'hosted'),
-        filename: 'bundle.js',
+        filename: '[name]Bundle.js',
     },
 };

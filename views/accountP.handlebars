@@ -8,15 +8,16 @@
 </head>
 
 <body>
-  <nav><a href="/login"><img id="logo" src="/assets/img/card.jpg" alt="face logo" /></a>
-    <div class="navlink"><a href="/logout">Log out</a></div>
+  <nav><a href="/login"><img id="logo" src="/assets/img/face.png" alt="face logo" /></a>
     <div class="navlink"><a href="/account">User: {{account.username}} </a></div> {{!-- Calls session data --}}
     <div class="navinfo">Birthday: {{account.birthday}}</div>
     <div class="navinfo">Zodiac: {{account.zodiac}}</div>
-    <div class="navinfo">Score: {{account.score}}</a></div>
+    <div class="navinfo">Score: {{account.score}}</div>
   </nav>
 
-  <section id="app">
+  <section id="content">
+
+  </section>
 
   </section>
   {{!-- Error Code --}}
@@ -25,7 +26,7 @@
     <h3><span id="errorMessage"></span></h3>
     <img id="teller" src="assets/img/fortune-teller.png" alt="magic man in cape" />
   </div>
-  <script src="/assets/appBundle.js"></script>
+  <script src="/assets/accountBundle.js"></script>
 </body>
 
 </html>
