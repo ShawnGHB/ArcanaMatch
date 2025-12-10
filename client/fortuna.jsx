@@ -16,7 +16,7 @@ const handleRoll = (e, onRollPlaced) => {
         return false;
     }
 
-    const zodiac = window.USER_zodiac //grabs straight from the session
+    const zodiac = window.USER_zodiac; //grabs straight from the session
 
     helper.sendPost(e.target.action, { bet, zodiac }, onRollPlaced);
     return false;
@@ -82,7 +82,7 @@ const RollList = (props) => {
                     })}
                 </div>
                 {/* boolean value determines win text, and changes color */}
-                <h2 className="rollWin">{roll.win ? "Winner" : "Lost"}</h2>
+                <h2 className="rollWin">{roll.luck ? "Winner" : "Lost"}</h2>
             </div>
         );
     });
@@ -97,20 +97,49 @@ const RollList = (props) => {
 const App = () => {
     const [reloadRolls, setReloadRolls] = useState(false);
 
-    return (
-        <div>
-            <div id="rollArea">
-                <BetForm triggerReload={() => setReloadRolls(!reloadRolls)} />
-            </div>
-            <div id="rolls">
-                <RollList rolls={[]} reloadRolls={reloadRolls} />
-            </div>
+    return (<div>
+
+        <Nav reload={reloadRolls} />
+
+
+        <div id="rollArea">
+            <BetForm triggerReload={() => setReloadRolls(!reloadRolls)} />
         </div>
+        <div id="rolls">
+            <RollList rolls={[]} reloadRolls={reloadRolls} />
+        </div>
+    </div>
+    );
+};
+
+const Nav = (props) => {
+
+    const [account, setAccount] = useState({});
+
+    useEffect(() => {
+        //calls accountData from the server
+        const loadAccount = async () => {
+            const response = await fetch('/getUser');
+            const data = await response.json();
+            setAccount(data.account);
+        };
+        loadAccount();
+    }, [props.reload]);
+
+    return (
+        <nav id="nav"><a href="/login"><img id="logo" src="/assets/img/card.jpg" alt="face logo" /></a>
+            <div className="navlink"><a href="/logout">Log out</a></div>
+            <div className="navlink"><a href="/account">User: {account.username} </a></div>
+            <div className="navinfo">Birthday: {account.birthday}</div>
+            <div className="navinfo">Zodiac: {account.zodiac}</div>
+            <div className="navinfo">Score: {account.score}</div>
+        </nav>
     );
 };
 
 const init = () => {
     const root = createRoot(document.getElementById('app'));
+
     root.render(<App />);
 };
 

@@ -1,6 +1,19 @@
 const models = require('../models');
 const Account = models.Account;
 
+const accountPage = (req, res) => {
+    return res.render('account', {
+        //need to render values so they're accessible from the session
+        // username: req.session.account.username,
+        // birthday: req.session.account.birthday,
+        // zodiac: req.session.account.zodiac,
+        account: req.session.account
+    });
+};
+
+const getAccountData = (req, res) => {
+    res.json({ account: req.session.account });
+}
 
 const loginPage = (req, res) => {
     return res.render('login');
@@ -79,5 +92,7 @@ module.exports = {
     logout,
     login,
     signup,
-    getName
+    getName,
+    accountPage,
+    getAccountData
 };

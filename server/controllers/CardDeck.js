@@ -1,17 +1,12 @@
-const gamblePage = async (req, res) => {
-    return res.render('app', {
-        //need to render values so they're accessible from the session
-        // username: req.session.account.username,
-        // birthday: req.session.account.birthday,
-        // zodiac: req.session.account.zodiac,
-        zodiac: req.session.account.zodiac,
-        score: req.session.account.score,
-    });
-};
 
 const models = require('../models');
 const Tarot = models.Tarot;
 const Account = models.Account;
+
+const gamblePage = async (req, res) => {
+    res.render('app',
+        { account: req.session.account });
+}
 
 
 // request is going to take the bet and return a new score based off of the roll function
@@ -21,7 +16,7 @@ const grabTarots = async (req, res) => {
         const data = await res.json();
 
         cardNames = data.cards.map((data) => data.name); //gives us cards names
-        cardSuits = data.cards.map((data) => data.suitt);
+        cardSuits = data.cards.map((data) => data.suit);
         return { cardNames, cardSuits };
         // return the cards so rollDeck can use them
     } catch (err) {
@@ -44,8 +39,11 @@ const rollDeck = async (req, res) => {
 
         if (["wands", "swords"].includes(cardRoll.cardSuits[i])) {
             betChance -= 1;
-        } else {
+        } else if (["pentacles", "cups"].includes(cardRoll.cardSuits[i])){
             betChance += 1;
+        }
+        else {
+            betChance += 0; //major arcana
         }
     }
 
@@ -58,48 +56,52 @@ const rollDeck = async (req, res) => {
 
 
     var win = false;
-    if (betChance < 0) {
+    if (betChance <= 0) {
         win = false
     } else {
         win = true;
     }
 
     var bet = parseInt(req.body.bet);
+    var score = win ? bet : -bet;// will add or decrease based on success of bet
 
-    bet += win ? bet : -bet; // will add or decrease based on success of bet
 
-
-const rollData = {
-    luck: win,
-    score: bet,
-    cards: cardRoll.cardNames,
-    owner: req.session.account._id,
-};
-
-const updateAccount = await Account.findByIdAndUpdate(
-    req.session.account._id,
-    { $inc: { score: bet } }, //inc updates numeric values
-    { new: true }
-);
-
-try {
-    const newRoll = new Tarot(rollData);
-    await newRoll.save();
-    return res.status(201).json({ luck: newRoll.luck, cards: newRoll.cards, score: newRoll.score });
-} catch (err) {
-    console.log(err);
-    if (err.code === 11000) {
-        return res.status(400).json({ error: 'Something went wrong!' });//roll shouldn't happen again
+    const rollData = {
+        luck: win,
+        score: score,
+        cards: cardRoll.cardNames,
+        owner: req.session.account._id,
     };
 
-    return res.status(500).json({ error: 'An error during your gamble.' });
-}
+    const updateAccount = await Account.findByIdAndUpdate(
+        req.session.account._id,
+        { $inc: { score: score } }, //inc updates numeric values
+        { new: true }
+    );
+
+    
+
+    //need to save score on roll
+    try {
+        const newRoll = new Tarot(rollData);
+        await newRoll.save();
+        req.session.account.score = updateAccount.score;
+        req.session.save();
+        return res.status(201).json({ luck: newRoll.luck, cards: newRoll.cards, score: newRoll.score });
+    } catch (err) {
+        console.log(err);
+        if (err.code === 11000) {
+            return res.status(400).json({ error: 'Something went wrong!' });//roll shouldn't happen again
+        };
+
+        return res.status(500).json({ error: 'An error during your gamble.' });
+    }
 };
 
 const getRolls = async (req, res) => {
     try {
         const query = { owner: req.session.account._id };
-        const docs = await Tarot.find(query).select('luck cards').lean().exec();
+        const docs = await Tarot.find(query).select('luck score cards').lean().exec();
 
         return res.json({ rolls: docs });
     } catch (err) {
@@ -110,7 +112,7 @@ const getRolls = async (req, res) => {
 };
 
 module.exports = {
-    gamblePage,
     rollDeck,
     getRolls,
+    gamblePage
 };

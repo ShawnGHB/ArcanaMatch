@@ -7,21 +7,23 @@ const handleDono = (e, scoreReload, accountId) => {
     e.preventDefault();
     helper.hideError();
 
-    const score = e.target.querySelector('#donoScore').value;
+    const amount = parseInt(e.target.querySelector('#score').value);
 
-    if (!score) {
+    if (!amount) {
         helper.handleError('Need to donate a value');
         return false;
     }
 
-    const donaterScore = window.score;
+    // donater = window.USER_username;
+    const donaterScore =parseInt(window.USER_score);
 
-    if((donaterScore - score) < 0){
+    if ((donaterScore - amount) < 0) {
         helper.handleError("You can't donate more than you have...");
         return false;
     }
 
-    helper.sendPost(e.target.action, {amount, accountId}, scoreReload);
+
+    helper.sendPost(e.target.action, { amount, accountId }, scoreReload);
     return false;
 };
 
@@ -29,17 +31,26 @@ const handleUpdate = (e, accountReload) => {
     e.preventDefault();
     helper.hideError();
 
-    const pass = e.target.querySelector('#pass').value;
-    const pass2 = e.target.querySelector('#pass2').value;
-    const birthday = e.target.querySelector('#birthday').value;
+    let pass = e.target.querySelector('#pass').value;
+    let pass2 = e.target.querySelector('#pass2').value;
+    let birthdayInp = e.target.querySelector('#birthday').value;
+    let birthday = birthdayInp ? new Date(birthdayInp).toLocaleDateString() : null;
 
-
-    if (((pass || pass2) && pass != pass2)) {
-        helper.handleError('Enter both pass fields(correctly) to change');
+    if (((pass && !pass2) || (!pass && pass2))) {
+        helper.handleError('Enter both pass fields to change');
         return false;
     }
 
-    helper.sendPost(e.target.action, { pass, age, birthday }, triggerReload);
+    if(!birthday){
+        birthday = null;
+    }
+
+    if(!pass && ! pass2){
+        pass = null;
+        pass2 = null;
+    }
+
+    helper.sendPost(e.target.action, { pass, pass2, birthday }, accountReload);
     return false;
 };
 
@@ -53,13 +64,13 @@ const AccountForm = (props) => {
             method="POST"
             className="accountForm"
         >
-            <label htmlFor="pass">Update Password?: </label>
-            <input id="pass" type="password" name="pass" placeholder="password" />
-            <label htmlFor="pass2">Password: </label>
-            <input id="pass2" type="password" name="pass2" placeholder="retype password" />
+            <label htmlFor="pass">Old Password: </label>
+            <input id="pass" type="password" name="pass" placeholder="Curr password" />
+            <label htmlFor="pass2">Update Password?: </label>
+            <input id="pass2" type="password" name="pass2" placeholder="New password" />
 
             <label htmlFor="birthday">Update Birthday?: </label>
-            <input id="birthday" type="date" name="birthday"  />
+            <input id="birthday" type="date" name="birthday" />
 
             <input className="formSubmit" type="submit" value="Update Account" />
         </form>
@@ -68,7 +79,7 @@ const AccountForm = (props) => {
 
 
 //list all accounts on the server, can be donated to from user's points
-const Accountlist = (props) => {
+const AccountList = (props) => {
     const [accounts, setAccounts] = useState(props.accounts);
 
     useEffect(() => {
@@ -101,9 +112,10 @@ const Accountlist = (props) => {
                     name="donoForm"
                     action="/donation"
                     method="POST"
+
                 >
                     <label htmlFor="score">Points: </label>
-                    <input id="donoScore" type="number" min="0" name="score" />
+                    <input id="score" type="number" min="0" name="score" />
                     <input className="makeDonoSubmit" type="submit" value="Make Donation" />
                 </form>
             </div>
@@ -116,24 +128,52 @@ const Accountlist = (props) => {
     );
 };
 
-
 const App = () => {
-    const [reloadAccounts, setReloadRolls] = useState(false);
+    const [reloadAccounts, setReloadAccounts] = useState(false);
+
+    return (<div>
+
+        <Nav reload={reloadAccounts} />
+
+        <div id="rollArea">
+            <AccountForm triggerReload={() => setReloadAccounts(!reloadAccounts)} />
+        </div>
+        <div id="rolls">
+            {/* triggers reload since there is a form inside of the account tiles */}
+            <AccountList accounts={[]} reloadAccounts={reloadAccounts} triggerReload={() => setReloadAccounts(!reloadAccounts)} />
+        </div>
+    </div>
+    );
+};
+
+const Nav = (props) => {
+
+    const [account, setAccount] = useState({});
+
+    useEffect(() => {
+        //calls accountData from the server
+        const loadAccount = async () => {
+            const response = await fetch('/getUser');
+            const data = await response.json();
+            setAccount(data.account);
+        };
+        loadAccount();
+    }, [props.reload]);
 
     return (
-        <div>
-            <div id="accountArea">
-                <AccountForm triggerReload={() => setReloadAccounts(!reloadAccounts)} />
-            </div>
-            <div id="accounts">
-                <Accountlist accounts={[]} reloadAccounts={reloadAccounts} />
-            </div>
-        </div>
+        <nav id="nav"><a href="/login"><img id="logo" src="/assets/img/card.jpg" alt="face logo" /></a>
+            <div className="navlink"><a href="/logout">Log out</a></div>
+            <div className="navlink"><a href="/account">User: {account.username} </a></div>
+            <div className="navinfo">Birthday: {account.birthday}</div>
+            <div className="navinfo">Zodiac: {account.zodiac}</div>
+            <div className="navinfo">Score: {account.score}</div>
+        </nav>
     );
 };
 
 const init = () => {
-    const root = createRoot(document.getElementById('content'));
+    const root = createRoot(document.getElementById('app'));
+
     root.render(<App />);
 };
 

@@ -24,6 +24,7 @@ nav {
     display: flex;
     align-items: center;
     padding: 5px;
+    position: sticky;
 }
 
 nav:nth-child(1) {
@@ -162,8 +163,8 @@ nav:nth-child(1) {
     margin: 0 auto;
     margin-top: 14px;
     font-size: 1.2em;
-    width: 120px;
-    background-color: #38b462;
+    width: 166px;
+    background-color: #298448;
     border-radius: 5px;
     border-color: #004310;
     padding: 3px 0px;
@@ -209,8 +210,8 @@ nav:nth-child(1) {
 #fortuneMessage {
     position: absolute;
     top: 250px;
-    /* width: 250px; */
-    height: 650px;
+    width: 240px;
+    height: 475px;
     z-index: 200;
     right: 0px;
     overflow: hidden;
@@ -231,9 +232,9 @@ nav:nth-child(1) {
 }
 
 #errorMessage {
-    font-size: 1.2em;
+    font-size: 1.1em;
     font-weight: bold;
-    color: red;
+    color: rgb(62, 0, 120);
     font-style: italic;
 }
 
@@ -317,4 +318,24 @@ h3.cardBet {
     text-align: center;
     margin-top: 2px;
     color: antiquewhite;
+}
+
+
+.account{
+    margin: 1rem auto;
+    text-align: center;
+    gap: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-self: center;
+    align-items: center;
+    padding: 20;
+    background: darkmagenta;
+}
+
+.account img {    
+    width: 200px;
+    height: auto;
+    display: inline;
 }
